@@ -17,7 +17,6 @@ public class CustomerReducer extends Reducer<Text, CustomerWritable, Text, Text>
 
     @Override
     protected void reduce(Text key, Iterable<CustomerWritable> values, Context context) throws IOException, InterruptedException {
-        //TODO: consider secondary sort for this
         Iterable<CustomerWritable> sortedValues = sort(values, COMPARATOR.reversed());
         DateWritable actualActivationDate = findActualActivationDate(sortedValues);
         if (actualActivationDate != null){
