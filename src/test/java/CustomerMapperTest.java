@@ -1,4 +1,5 @@
 import model.CustomerWritable;
+import model.KeyPair;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -36,10 +37,12 @@ public class CustomerMapperTest {
         expectedResult.setPhone(new Text("0987000001"));
         expectedResult.setActivationDate(new DateWritable(Date.valueOf("2016-03-01")));
         expectedResult.setDeactivationDate(new DateWritable(Date.valueOf("2016-05-01")));
+        KeyPair expectedKey = new KeyPair(expectedResult.getPhone(), expectedResult.getActivationDate().getDays());
 
         tester.map(new LongWritable(1), new Text("0987000001,2016-03-01,2016-05-01"), context);
 
-        verify(context, times(1)).write(expectedResult.getPhone(), expectedResult);
+
+        verify(context, times(1)).write(expectedKey, expectedResult);
     }
 
     @Test
@@ -47,10 +50,11 @@ public class CustomerMapperTest {
         CustomerWritable expectedResult = new CustomerWritable();
         expectedResult.setPhone(new Text("0987000001"));
         expectedResult.setActivationDate(new DateWritable(Date.valueOf("2016-03-01")));
+        KeyPair expectedKey = new KeyPair(expectedResult.getPhone(), expectedResult.getActivationDate().getDays());
 
         tester.map(new LongWritable(1), new Text("0987000001, 2016-03-01,"), context);
 
-        verify(context, times(1)).write(expectedResult.getPhone(), expectedResult);
+        verify(context, times(1)).write(expectedKey, expectedResult);
     }
 
     @Test

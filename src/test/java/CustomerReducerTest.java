@@ -1,5 +1,6 @@
 import com.google.common.collect.Lists;
 import model.CustomerWritable;
+import model.KeyPair;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.io.Text;
@@ -37,7 +38,7 @@ public class CustomerReducerTest {
         CustomerWritable value = createTestData("0987000001", "2016-05-01", null);
         List<CustomerWritable> values = Lists.newArrayList(value);
 
-        tester.reduce(value.getPhone(), values, context);
+        tester.reduce(createIntPairWithFirstValue(value.getPhone()), values, context);
 
         verify(context, times(1)).write(value.getPhone(), new Text(value.getActivationDate().toString()));
     }
@@ -46,14 +47,15 @@ public class CustomerReducerTest {
     public void testMultipleValues() throws IOException, InterruptedException {
         Text key = new Text("0987000001");
 
+        // expected input of the reducer is a sorted list
         List<CustomerWritable> values = Lists.newArrayList();
-        values.add(createTestData(key.toString(), "2016-03-01", "2016-05-01"));
-        values.add(createTestData(key.toString(), "2016-02-01", "2016-03-01"));
         values.add(createTestData(key.toString(), "2016-12-01", null));
         values.add(createTestData(key.toString(), "2016-09-01", "2016-12-01"));
         values.add(createTestData(key.toString(), "2016-06-01", "2016-09-01"));
+        values.add(createTestData(key.toString(), "2016-03-01", "2016-05-01"));
+        values.add(createTestData(key.toString(), "2016-02-01", "2016-03-01"));
 
-        tester.reduce(key, values, context);
+        tester.reduce(createIntPairWithFirstValue(key), values, context);
 
         verify(context, times(1)).write(key, new Text("2016-06-01"));
     }
@@ -63,7 +65,7 @@ public class CustomerReducerTest {
         CustomerWritable value = createTestData("0987000001", "2016-05-01", "2016-12-1");
         List<CustomerWritable> values = Lists.newArrayList(value);
 
-        tester.reduce(value.getPhone(), values, context);
+        tester.reduce(createIntPairWithFirstValue(value.getPhone()), values, context);
 
         verify(context, times(0)).write(anyObject(), anyObject());
     }
@@ -85,5 +87,8 @@ public class CustomerReducerTest {
         return value;
     }
 
-
+    private KeyPair createIntPairWithFirstValue(Text phone) {
+        // dont really care about the second part of the pair in reducer since it just for secondary sort which happen before reducer phase
+        return new KeyPair(phone, 1);
+    }
 }

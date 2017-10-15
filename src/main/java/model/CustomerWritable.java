@@ -32,7 +32,10 @@ public class CustomerWritable implements WritableComparable<CustomerWritable> {
 
     @Override
     public int compareTo(CustomerWritable o) {
-        return activationDate.compareTo(o.activationDate);
+        int phoneEquality = phone.compareTo(o.getPhone());
+        int activationDateEquality = activationDate.compareTo(o.getDeactivationDate());
+        int deactivationDateEquality = deactivationDate.compareTo(o.getDeactivationDate());
+        return phoneEquality | activationDateEquality | deactivationDateEquality;
     }
 
 

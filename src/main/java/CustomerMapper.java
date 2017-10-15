@@ -1,4 +1,5 @@
 import model.CustomerWritable;
+import model.KeyPair;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -10,11 +11,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.sql.Date;
 
-
 /**
  * Created by nguyenthuyhaivi on 10/14/17.
  */
-public class CustomerMapper extends Mapper<LongWritable, Text, Text, CustomerWritable> {
+public class CustomerMapper extends Mapper<LongWritable, Text, KeyPair, CustomerWritable> {
     private final static Logger LOGGER = LoggerFactory.getLogger(CustomerMapper.class);
     private final static String DELIMITER = ",";
 
@@ -34,19 +34,20 @@ public class CustomerMapper extends Mapper<LongWritable, Text, Text, CustomerWri
             if (record.length > 2) {
                 item.setDeactivationDate(new DateWritable(parseDate(record[2])));
             }
-        } catch (IllegalArgumentException e) { // Invalid record
+            KeyPair keyPair = new KeyPair(item.getPhone(), item.getActivationDate().getDays());
+            context.write(keyPair, item);
+        } catch (IllegalArgumentException e) {
             LOGGER.error("Invalid record");
             return;
         }
 
-        context.write(item.getPhone(), item);
     }
 
     private boolean isInvalidRecord(String[] record) {
         return record.length < 2 || record.length > 3;
     }
 
-    private Date parseDate(String str){
+    private Date parseDate(String str) {
         return Date.valueOf(StringUtils.trim(str));
     }
 }

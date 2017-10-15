@@ -1,13 +1,16 @@
+import comparator.GroupComparator;
+import comparator.KeyComparator;
 import model.CustomerWritable;
+import model.KeyPair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import partitioner.PhonePartitioner;
 
 /**
  * Created by nguyenthuyhaivi on 10/14/17.
@@ -26,7 +29,11 @@ public class CustomerDriver {
         job.setMapperClass(CustomerMapper.class);
         job.setReducerClass(CustomerReducer.class);
 
-        job.setMapOutputKeyClass(Text.class);
+        job.setPartitionerClass(PhonePartitioner.class);
+        job.setSortComparatorClass(KeyComparator.class);
+        job.setGroupingComparatorClass(GroupComparator.class);
+
+        job.setMapOutputKeyClass(KeyPair.class);
         job.setMapOutputValueClass(CustomerWritable.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
